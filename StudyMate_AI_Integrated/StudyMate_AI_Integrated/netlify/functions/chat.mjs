@@ -40,6 +40,7 @@ export default async (request, context) => {
       }
     });
     console.log("[StudyMate] Supabase phản hồi:", authCheck.status);
+    console.log("[StudyMate] Đã xác minh xong Supabase");
     if (!authCheck.ok) {
       return Response.json({ error: "Phiên đăng nhập đã hết hạn. Bạn hãy đăng nhập lại nhé." }, { status: 401 });
     }
