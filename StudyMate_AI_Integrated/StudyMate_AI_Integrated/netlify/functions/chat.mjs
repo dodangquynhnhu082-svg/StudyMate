@@ -101,6 +101,9 @@ export default async (request, context) => {
 console.log("[StudyMate] Gemini phản hồi:", upstream.status);
     const result = await upstream.json().catch(() => ({}));
     if (!upstream.ok) {
+  console.error("[StudyMate] Gemini error:", JSON.stringify(result.error || result));
+}
+    if (!upstream.ok) {
       const message = result?.error?.message || "Dịch vụ AI đang bận hoặc cấu hình API chưa đúng.";
       return Response.json({ error: message }, { status: upstream.status >= 500 ? 502 : 400 });
     }
