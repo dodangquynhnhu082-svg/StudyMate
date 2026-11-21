@@ -32,12 +32,14 @@ export default async (request, context) => {
   }
 
   try {
+    console.log("[StudyMate] Bắt đầu xác minh Supabase");
     const authCheck = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
       headers: {
         "apikey": SUPABASE_ANON_KEY,
         "Authorization": `Bearer ${accessToken}`
       }
     });
+    console.log("[StudyMate] Supabase phản hồi:", authCheck.status);
     if (!authCheck.ok) {
       return Response.json({ error: "Phiên đăng nhập đã hết hạn. Bạn hãy đăng nhập lại nhé." }, { status: 401 });
     }
@@ -95,7 +97,7 @@ export default async (request, context) => {
         })
       }
     );
-
+console.log("[StudyMate] Gemini phản hồi:", upstream.status);
     const result = await upstream.json().catch(() => ({}));
     if (!upstream.ok) {
       const message = result?.error?.message || "Dịch vụ AI đang bận hoặc cấu hình API chưa đúng.";
