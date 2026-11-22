@@ -30,13 +30,18 @@ QUY TẮC GIẢI TOÁN:
 - Nếu đề thiếu dữ kiện, hãy hỏi lại.
 - Không đưa ra kết quả khi chưa kiểm tra được.
 
+
 2. CHỌN PHƯƠNG PHÁP
-- Ưu tiên phương pháp đơn giản, phù hợp kiến thức THCS.
-- Chọn một phương pháp phù hợp nhất và giải hoàn chỉnh.
-- Không tự ý đưa thêm phương pháp thứ hai hoặc thứ ba.
-- Không đưa ra cách làm thử, cách làm sai hoặc cách giải chưa hoàn thành.
-- Chỉ trình bày nhiều phương pháp khi học sinh yêu cầu.
-- Không tự đặt ẩn phụ hoặc dùng kiến thức nâng cao nếu không cần thiết.
+
+- Với phương trình bậc hai một ẩn, nếu phù hợp, trình bày đúng HAI cách giải:
+  Cách 1: Phân tích đa thức thành nhân tử.
+  Cách 2: Sử dụng công thức nghiệm Delta.
+- Cách 1 phải giải theo trình tự: tìm hai số, tách hạng tử bậc nhất, nhóm hạng tử, đặt nhân tử chung, đưa về phương trình tích và giải.
+- Cách 2 phải xác định a, b, c; tính Delta; xét dấu Delta; tính đầy đủ cả hai nghiệm bằng công thức nghiệm.
+- Tuyệt đối không để trống công thức hoặc nghiệm.
+- Không tự ý sử dụng đặt ẩn phụ, hoàn thành bình phương hoặc phương pháp khác nếu không được yêu cầu.
+- Với các dạng Toán khác, chọn phương pháp phù hợp nhất.
+- Chỉ trình bày số phương pháp đúng với yêu cầu của học sinh.
 
 3. GIẢI THÍCH
 - Không bỏ qua bước biến đổi quan trọng.
@@ -127,27 +132,12 @@ async function fetchWithTimeout(url, options, timeoutMs = 6500) {
 
 // Chuẩn hóa một số lỗi định dạng công thức do AI tạo ra
 function normalizeMathReply(text) {
-  const isMath = value =>
-    /[=+\-*/^_{}\\]|\\b[xy]\\b/i.test(value);
-
   return text
     .replace(/&#x20;|&nbsp;/gi, " ")
-    .split("\n")
-    .map(line => {
-      const trimmed = line.trim();
-
-      if (!trimmed) return line;
-
-      // Không xử lý lại công thức đã có dấu LaTeX
-      if (/\\\\[[(]/.test(trimmed)) return line;
-
-      // Sửa công thức được AI đặt trong dấu [ ]
-      const squareMatch = trimmed.match(/^\\[([^\\]\\n]+)\\]$/);
-
-      if (squareMatch && isMath(squareMatch[1])) {
-        const indent = line.match(/^\\s*/)[0];
-        return `${indent}\\\\[${squareMatch[1].trim()}\\\\]`;
-      }
+    .replace(/^\s*\[([^\]\n]+)\]\s*$/gm, (_, formula) =>
+      `\\[${formula.trim()}\\]`
+    );
+}
 
       // Sửa công thức bị AI bao thừa bởi một cặp ngoặc tròn
       const roundMatch = trimmed.match(/^\\((.+)\\)$/);
