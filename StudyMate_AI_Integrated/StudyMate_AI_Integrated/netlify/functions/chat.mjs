@@ -220,42 +220,34 @@ async function fetchWithTimeout(url, options, timeoutMs = 6500) {
 }
 
 // Chuẩn hóa một số lỗi định dạng công thức do AI tạo ra
+
 function normalizeMathReply(text) {
   const isMath = value =>
-    /[=+\-*/^_{}\\]|\b[xy]\b/i.test(value);
+    /[=+\-*/^_{}\\]|[²³√Δ]|\b[xy]\b/i.test(value);
 
   return text
-    .replace(/&#x20;|&nbsp;/gi, " ")
+    .replace(/&#x20;|&#160;|&nbsp;/gi, " ")
     .split("\n")
     .map(line => {
-      const trimmed = line.trim();
+      // Chuyển công thức trong dấu [ ] thành LaTeX
+      line = line.replace(
+        /(?<!\\)\[([^\]\n]+)\](?!\])/g,
+        (match, formula) => {
+          if (!isMath(formula)) return match;
+          return `\\[${formula.trim()}\\]`;
+        }
+      );
 
-      if (!trimmed) return line;
+      // Chuyển công thức trong dấu ( ) thành LaTeX
+      line = line.replace(
+        /(?<!\\)\(([^()\n]+)\)/g,
+        (match, formula) => {
+          if (!isMath(formula)) return match;
+          return `\\(${formula.trim()}\\)`;
+        }
+      );
 
-      // Không xử lý lại công thức đã có dấu LaTeX
-      if (/\\[[(]/.test(trimmed)) return line;
-
-      // Sửa công thức được AI đặt trong dấu [ ]
-      const squareMatch = trimmed.match(/^\[([^\]\n]+)\]$/);
-
-      if (squareMatch && isMath(squareMatch[1])) {
-        const indent = line.match(/^\s*/)[0];
-        return `${indent}\\[${squareMatch[1].trim()}\\]`;
-      }
-
-      // Sửa công thức được AI đặt trong dấu ( )
-      const roundMatch = trimmed.match(/^\((.+)\)$/);
-
-      if (roundMatch && isMath(roundMatch[1])) {
-        const indent = line.match(/^\s*/)[0];
-        return `${indent}\\[${roundMatch[1].trim()}\\]`;
-      }
-
-      // Sửa công thức nằm trong câu văn
-      return line.replace(/\(([^()\n]+)\)/g, (match, formula) => {
-        if (!isMath(formula)) return match;
-        return `\\(${formula.trim()}\\)`;
-      });
+      return line;
     })
     .join("\n");
 }
