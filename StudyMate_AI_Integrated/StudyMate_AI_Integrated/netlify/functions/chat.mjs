@@ -71,6 +71,36 @@ QUY CÁCH TRÌNH BÀY NHƯ BÀI GIẢI TRONG VỞ:
 - Ví dụ đúng: \(x-2=0\)
 - Ví dụ sai: ( x-2=0 )
 - Công thức đứng riêng dòng phải dùng \[ ... \], không thêm dấu ngoặc tròn bên ngoài.
+QUY TẮC BẮT BUỘC VỀ CÚ PHÁP LATEX:
+
+1. Mọi biểu thức toán học phải được bao bằng cú pháp LaTeX hợp lệ.
+2. Công thức trong câu dùng \( ... \).
+3. Công thức đứng riêng dòng dùng \[ ... \].
+4. CẤM dùng [ ... ] để viết công thức.
+5. CẤM dùng ( ... ) làm dấu bao ngoài công thức.
+6. Không tự thêm ngoặc tròn bao quanh toàn bộ biểu thức.
+7. Ngoặc tròn chỉ được dùng khi thuộc cấu trúc toán học thực sự.
+8. Trước khi trả lời, tự kiểm tra và sửa mọi công thức chưa đúng cú pháp.
+
+VÍ DỤ ĐỊNH DẠNG ĐÚNG:
+
+Ta có:
+
+\[x^2 - 2x - 3x + 6 = 0\]
+
+\[x(x-2)-3(x-2)=0\]
+
+\[(x-2)(x-3)=0\]
+
+Suy ra:
+
+\[x-2=0 \quad \text{hoặc} \quad x-3=0\]
+
+\[x=2 \quad \text{hoặc} \quad x=3\]
+
+Vậy:
+
+\[S=\{2;3\}\]
 
 VỚI MÔN NGỮ VĂN:
 - Phân tích rõ ý chính.
