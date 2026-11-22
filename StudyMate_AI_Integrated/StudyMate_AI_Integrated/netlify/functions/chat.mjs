@@ -245,6 +245,43 @@ export default async (request, context) => {
 
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
+        
+function normalizeMathReply(text) {
+  const isMath = (value) =>
+    /[=+\-*/^_{}\\]|[xy]\s*\d*/i.test(value) ||
+    /^\d+(?:\.\d+)?$/.test(value.trim());
+
+  return text
+    // Sửa các ký tự khoảng trắng bị mã hóa
+    .replace(/&#x20;|&nbsp;/gi, " ")
+
+    // [công thức] đứng riêng dòng -> công thức LaTeX
+    .replace(/^\s*\[([^\]\n]+)\]\s*$/gm, (match, formula) =>
+      isMath(formula)
+        ? String.raw`\[${formula.trim()}\]`
+        : match
+    )
+
+    // (công thức) đứng riêng dòng -> công thức LaTeX
+    // Kể cả trường hợp có ngoặc lồng nhau
+    .replace(/^\s*\((.+)\)\s*$/gm, (match, formula) =>
+      isMath(formula)
+        ? String.raw`\[${formula.trim()}\]`
+        : match
+    )
+
+    // (công thức) nằm trong câu -> công thức LaTeX
+    .replace(/\(([^()\n]+)\)/g, (match, formula) => {
+      if (/^\d+(?:\.\d+)?$/.test(formula.trim())) {
+        return formula.trim();
+      }
+
+      return isMath(formula)
+        ? String.raw`\(${formula.trim()}\)`
+        : match;
+    });
+}
+
         const upstream = await fetchWithTimeout(
           `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
           {
@@ -282,7 +319,9 @@ export default async (request, context) => {
 
           if (reply) {
             console.log("[StudyMate] AI trả lời thành công:", model);
-            return Response.json({ reply });
+            return Response.json({
+  reply: normalizeMathReply(reply)
+});
           }
 
           lastError = "AI chưa tạo được nội dung trả lời.";
