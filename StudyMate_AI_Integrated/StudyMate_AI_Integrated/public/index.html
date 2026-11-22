@@ -3908,19 +3908,7 @@ Choosing a career is one of the most important decisions for teenagers. Nowadays
       if (!data.reply || typeof data.reply !== "string") {
         throw new Error("Gia sư chưa tạo được câu trả lời. Bạn thử gửi lại nhé.");
       }
-   waitingBubble.innerHTML = DOMPurify.sanitize(
-  marked.parse(data.reply)
-);
-
-renderMathInElement(waitingBubble, {
-  delimiters: [
-    { left: "\\[", right: "\\]", display: true },
-    { left: "\\(", right: "\\)", display: false },
-    { left: "$$", right: "$$", display: true },
-    { left: "$", right: "$", display: false }
-  ],
-  throwOnError: false
-});
+  waitingBubble.textContent = data.reply;
       tutorHistory.push({ role: "model", content: data.reply });
       tutorStatus.textContent = "Đã trả lời · Bạn có thể hỏi tiếp để trao đổi sâu hơn.";
     } catch (error) {
