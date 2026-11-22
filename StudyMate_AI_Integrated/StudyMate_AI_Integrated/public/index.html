@@ -984,6 +984,13 @@ function toggleStudyMateSidebar(force){
 #san-ve-card .mini-tag{display:inline-flex;align-items:center;padding:7px 11px;border-radius:999px;background:#f1edff;color:#5946a8;font-size:12px;font-weight:800}
 @media(max-width:640px){#san-ve-card{padding:16px!important}#san-ve-card h2{font-size:22px}}
 </style>
+    <!-- Hiển thị Markdown -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<!-- Hiển thị công thức Toán -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 \n</head>
 <body>
 <div id="sm-auth-root">
@@ -3901,7 +3908,17 @@ Choosing a career is one of the most important decisions for teenagers. Nowadays
       if (!data.reply || typeof data.reply !== "string") {
         throw new Error("Gia sư chưa tạo được câu trả lời. Bạn thử gửi lại nhé.");
       }
-      waitingBubble.textContent = data.reply;
+     waitingBubble.innerHTML = marked.parse(data.reply);
+
+renderMathInElement(waitingBubble, {
+  delimiters: [
+    { left: "$$", right: "$$", display: true },
+    { left: "$", right: "$", display: false },
+    { left: "\\[", right: "\\]", display: true },
+    { left: "\\(", right: "\\)", display: false }
+  ],
+  throwOnError: false
+});
       tutorHistory.push({ role: "model", content: data.reply });
       tutorStatus.textContent = "Đã trả lời · Bạn có thể hỏi tiếp để trao đổi sâu hơn.";
     } catch (error) {
