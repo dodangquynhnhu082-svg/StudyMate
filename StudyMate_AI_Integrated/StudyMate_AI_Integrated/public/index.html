@@ -3909,9 +3909,21 @@ Choosing a career is one of the most important decisions for teenagers. Nowadays
         throw new Error("Gia sư chưa tạo được câu trả lời. Bạn thử gửi lại nhé.");
       }
  
-waitingBubble.innerHTML = DOMPurify.sanitize(
-  marked.parse(data.reply)
-);
+
+        
+        waitingBubble.innerHTML = DOMPurify.sanitize(
+        marked.parse(data.reply)
+      );
+
+      renderMathInElement(waitingBubble, {
+        delimiters: [
+          { left: "\\[", right: "\\]", display: true },
+          { left: "\\(", right: "\\)", display: false },
+          { left: "$$", right: "$$", display: true },
+          { left: "$", right: "$", display: false }
+        ],
+        throwOnError: false
+      });
 
 renderMathInElement(waitingBubble, {
   delimiters: [
