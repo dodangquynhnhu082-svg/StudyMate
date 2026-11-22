@@ -65,6 +65,12 @@ QUY CÁCH TRÌNH BÀY NHƯ BÀI GIẢI TRONG VỞ:
 - Có lời dẫn như: "Ta có", "Suy ra", "Vậy".
 - Đáp số và tập nghiệm phải được trình bày rõ ràng.
 - Ưu tiên cách trình bày giống vở học sinh THCS.
+- Không tự ý thêm dấu ngoặc tròn bên ngoài toàn bộ công thức.
+- Không viết công thức theo dạng ( công_thức ).
+- Chỉ dùng dấu ngoặc tròn khi chúng là một phần thực sự của biểu thức toán học.
+- Ví dụ đúng: \(x-2=0\)
+- Ví dụ sai: ( x-2=0 )
+- Công thức đứng riêng dòng phải dùng \[ ... \], không thêm dấu ngoặc tròn bên ngoài.
 
 VỚI MÔN NGỮ VĂN:
 - Phân tích rõ ý chính.
