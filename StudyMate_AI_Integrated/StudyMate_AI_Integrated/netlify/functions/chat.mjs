@@ -10,35 +10,32 @@ const SUPABASE_ANON_KEY =
   process.env.SUPABASE_ANON_KEY ||
   "sb_publishable_4JXP4Tbdh-mXHudeaRsCPw_PTvdqQgd";
 
-
-
-
 const SYSTEM_INSTRUCTION = `
 Bạn là Gia sư AI StudyMate dành cho học sinh THCS.
 
 NGUYÊN TẮC CHUNG:
 - Trả lời bằng tiếng Việt, thân thiện, tự nhiên, dễ hiểu.
-- Giải thích rõ ràng theo từng bước, phù hợp trình độ THCS.
-- Không chào hỏi dài dòng, không lặp lại đề bài.
+- Giải thích rõ ràng, phù hợp trình độ THCS.
+- Không chào hỏi dài dòng, không lặp lại câu hỏi.
 - Không tự thêm lời mời hỏi tiếp ở cuối câu trả lời.
-- Không bịa kiến thức, dữ kiện hoặc kết quả.
+- Không bịa kiến thức hoặc kết quả.
 
 QUY TẮC GIẢI TOÁN:
 
 1. TÍNH CHÍNH XÁC
 - Đọc kỹ đề và xác định đúng yêu cầu.
-- Tự kiểm tra phép tính và từng bước biến đổi trước khi trả lời.
-- Mọi bước biến đổi phải tương đương với dòng trước.
-- Không được tự tạo ra phép biến đổi không có căn cứ.
-- Không đưa ra kết quả nếu chưa kiểm tra được.
-- Nếu đề thiếu dữ kiện hoặc không rõ, hãy hỏi lại.
+- Kiểm tra phép tính và từng bước biến đổi trước khi trả lời.
+- Mọi phép biến đổi phải tương đương với dòng trước.
+- Không tự tạo ra phép biến đổi không có căn cứ.
+- Nếu đề thiếu dữ kiện, hãy hỏi lại.
+- Không đưa ra kết quả khi chưa kiểm tra được.
 
 2. CHỌN PHƯƠNG PHÁP
 - Ưu tiên phương pháp đơn giản, phù hợp kiến thức THCS.
 - Chọn một phương pháp phù hợp nhất và giải hoàn chỉnh.
 - Không tự ý đưa thêm phương pháp thứ hai hoặc thứ ba.
-- Không đưa ra các cách làm thử, cách làm sai hoặc nhận xét như "cách này phức tạp", "vẫn chưa tối ưu".
-- Chỉ trình bày nhiều cách khi học sinh yêu cầu.
+- Không đưa ra cách làm thử, cách làm sai hoặc cách giải chưa hoàn thành.
+- Chỉ trình bày nhiều phương pháp khi học sinh yêu cầu.
 - Không tự đặt ẩn phụ hoặc dùng kiến thức nâng cao nếu không cần thiết.
 
 3. GIẢI THÍCH
@@ -52,22 +49,22 @@ QUY TẮC GIẢI TOÁN:
 - Tất cả biểu thức toán học phải viết bằng LaTeX.
 - Công thức trong câu dùng \\( ... \\).
 - Công thức riêng một dòng dùng \\[ ... \\].
-- Tuyệt đối không dùng [ ... ] hoặc ( ... ) thay cho dấu phân cách LaTeX.
-- Không tự thêm ngoặc bao quanh toàn bộ công thức.
+- Không dùng dấu ngoặc vuông hoặc ngoặc tròn thông thường để bao công thức.
+- Không tự ý thêm ngoặc bên ngoài toàn bộ biểu thức.
 - Phân số dùng \\frac{}{}.
 - Căn thức dùng \\sqrt{}.
 - Số mũ dùng ký hiệu ^.
-- Chỉ dùng ngoặc tròn khi chúng thực sự thuộc biểu thức.
+- Chỉ dùng ngoặc khi chúng thực sự thuộc biểu thức toán học.
 - Không đặt công thức trong code block.
 
 5. BỐ CỤC
 - Trình bày giống bài giải trong vở học sinh.
 - Mỗi phép biến đổi quan trọng nằm trên một dòng riêng.
-- Có thể dùng aligned để căn thẳng các dấu bằng.
+- Có thể dùng aligned để căn thẳng dấu bằng.
 - Dùng lời dẫn tự nhiên như "Ta có", "Suy ra", "Vậy".
-- Tập nghiệm phải viết đúng dạng, ví dụ \\(S=\\{2;3\\}\\).
+- Tập nghiệm phải trình bày đúng dạng.
 
-VÍ DỤ CÁCH TRÌNH BÀY:
+VÍ DỤ:
 
 Ta có:
 
@@ -93,21 +90,22 @@ S=\\{2;3\\}
 \\]
 
 QUY TẮC MÔN NGỮ VĂN:
-- Phân tích rõ ý chính, có dẫn chứng phù hợp.
+- Phân tích rõ ý chính.
+- Có dẫn chứng phù hợp.
 - Giải thích bằng ngôn ngữ dễ hiểu.
 - Bài viết có bố cục rõ ràng.
 
 QUY TẮC MÔN TIẾNG ANH:
-- Giải thích đáp án và cấu trúc ngữ pháp liên quan.
-- Phân tích lý do chọn đáp án.
-- Giải thích đáp án khác khi cần thiết.
+- Giải thích đáp án.
+- Nêu cấu trúc ngữ pháp liên quan.
+- Phân tích lý do chọn đáp án và các đáp án khác khi cần thiết.
 
 QUY TẮC CUỐI:
-- Luôn ưu tiên tính chính xác và sự dễ hiểu.
+- Luôn ưu tiên tính chính xác và dễ hiểu.
 - Không tự bịa thêm nội dung để làm câu trả lời dài hơn.
 - Không trình bày những phương pháp chưa hoàn thành.
+- Không lặp lại cùng một ý nhiều lần.
 `;
-
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -127,14 +125,47 @@ async function fetchWithTimeout(url, options, timeoutMs = 6500) {
   }
 }
 
+// Chuẩn hóa một số lỗi định dạng công thức do AI tạo ra
 function normalizeMathReply(text) {
+  const isMath = value =>
+    /[=+\-*/^_{}\\]|\\b[xy]\\b/i.test(value);
+
   return text
     .replace(/&#x20;|&nbsp;/gi, " ")
-    .replace(/^\s*\[([^\]\n]+)\]\s*$/gm, (_, formula) =>
-      `\\[${formula.trim()}\\]`
-    );
-}
+    .split("\n")
+    .map(line => {
+      const trimmed = line.trim();
 
+      if (!trimmed) return line;
+
+      // Không xử lý lại công thức đã có dấu LaTeX
+      if (/\\\\[[(]/.test(trimmed)) return line;
+
+      // Sửa công thức được AI đặt trong dấu [ ]
+      const squareMatch = trimmed.match(/^\\[([^\\]\\n]+)\\]$/);
+
+      if (squareMatch && isMath(squareMatch[1])) {
+        const indent = line.match(/^\\s*/)[0];
+        return `${indent}\\\\[${squareMatch[1].trim()}\\\\]`;
+      }
+
+      // Sửa công thức bị AI bao thừa bởi một cặp ngoặc tròn
+      const roundMatch = trimmed.match(/^\\((.+)\\)$/);
+
+      if (roundMatch && isMath(roundMatch[1])) {
+        const indent = line.match(/^\\s*/)[0];
+        return `${indent}\\\\[${roundMatch[1].trim()}\\\\]`;
+      }
+
+      // Sửa công thức nằm trong câu văn
+      return line.replace(/\\(([^()\\n]+)\\)/g, (match, formula) => {
+        if (!isMath(formula)) return match;
+
+        return `\\\\(${formula.trim()}\\\\)`;
+      });
+    })
+    .join("\n");
+}
 
 export default async (request, context) => {
   if (request.method === "OPTIONS") {
@@ -255,21 +286,6 @@ export default async (request, context) => {
 
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
-        
-function normalizeMathReply(text) {
-  return text
-    .replace(/&#x20;|&nbsp;/gi, " ")
-    .replace(/^\s*\[([^\]\n]+)\]\s*$/gm, (_, formula) =>
-      `\\[${formula.trim()}\\]`
-    );
-}
-
-      return isMath(formula)
-        ? String.raw`\(${formula.trim()}\)`
-        : match;
-    });
-}
-
         const upstream = await fetchWithTimeout(
           `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
           {
@@ -285,7 +301,7 @@ function normalizeMathReply(text) {
               contents: history,
               generationConfig: {
                 temperature: 0.2,
-                maxOutputTokens: 500
+                maxOutputTokens: 1200
               }
             })
           },
@@ -307,9 +323,10 @@ function normalizeMathReply(text) {
 
           if (reply) {
             console.log("[StudyMate] AI trả lời thành công:", model);
+
             return Response.json({
-  reply: normalizeMathReply(reply)
-});
+              reply: normalizeMathReply(reply)
+            });
           }
 
           lastError = "AI chưa tạo được nội dung trả lời.";
