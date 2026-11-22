@@ -986,7 +986,7 @@ function toggleStudyMateSidebar(force){
 </style>
     <!-- Hiển thị Markdown -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
 <!-- Hiển thị công thức Toán -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -3908,14 +3908,16 @@ Choosing a career is one of the most important decisions for teenagers. Nowadays
       if (!data.reply || typeof data.reply !== "string") {
         throw new Error("Gia sư chưa tạo được câu trả lời. Bạn thử gửi lại nhé.");
       }
-     waitingBubble.innerHTML = marked.parse(data.reply);
+   waitingBubble.innerHTML = DOMPurify.sanitize(
+  marked.parse(data.reply)
+);
 
 renderMathInElement(waitingBubble, {
   delimiters: [
-    { left: "$$", right: "$$", display: true },
-    { left: "$", right: "$", display: false },
     { left: "\\[", right: "\\]", display: true },
-    { left: "\\(", right: "\\)", display: false }
+    { left: "\\(", right: "\\)", display: false },
+    { left: "$$", right: "$$", display: true },
+    { left: "$", right: "$", display: false }
   ],
   throwOnError: false
 });
