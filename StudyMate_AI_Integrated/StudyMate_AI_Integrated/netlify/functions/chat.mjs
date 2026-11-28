@@ -201,10 +201,7 @@ VIII. QUY TẮC CUỐI
 - Luôn giữ phong cách gia sư: rõ ràng, kiên nhẫn, có hướng dẫn và có giải thích.
 `;
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
+// Timeout cho các request chỉ cần nhận response headers (ví dụ xác minh Supabase).
 async function fetchWithTimeout(url, options, timeoutMs = 6500) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -214,6 +211,40 @@ async function fetchWithTimeout(url, options, timeoutMs = 6500) {
       ...options,
       signal: controller.signal
     });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Với Gemini, giữ timeout hoạt động cho đến khi đọc xong toàn bộ JSON.
+// Tránh trường hợp fetch nhận headers rồi nhưng phần body chờ vô hạn.
+async function fetchJsonWithTimeout(url, options, timeoutMs) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const startedAt = Date.now();
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+
+    const rawBody = await response.text();
+    let data = {};
+
+    if (rawBody) {
+      try {
+        data = JSON.parse(rawBody);
+      } catch {
+        data = { raw: rawBody.slice(0, 1000) };
+      }
+    }
+
+    return {
+      response,
+      data,
+      durationMs: Date.now() - startedAt
+    };
   } finally {
     clearTimeout(timer);
   }
@@ -252,6 +283,7 @@ function normalizeMathReply(text) {
     .join("\n");
 }
 
+
 export default async (request, context) => {
   if (request.method === "OPTIONS") {
     return new Response(null, { status: 204 });
@@ -277,6 +309,8 @@ export default async (request, context) => {
     );
   }
 
+  const authStartedAt = Date.now();
+
   try {
     console.log("[StudyMate] Bắt đầu xác minh Supabase");
 
@@ -291,7 +325,11 @@ export default async (request, context) => {
       4500
     );
 
-    console.log("[StudyMate] Supabase:", authCheck.status);
+    console.log(
+      "[StudyMate] Supabase:",
+      authCheck.status,
+      `(${Date.now() - authStartedAt} ms)`
+    );
 
     if (!authCheck.ok) {
       return Response.json(
@@ -301,7 +339,6 @@ export default async (request, context) => {
     }
 
     console.log("[StudyMate] Xác minh tài khoản thành công");
-
   } catch (error) {
     console.error("[StudyMate] Lỗi Supabase:", error.message);
 
@@ -362,16 +399,30 @@ export default async (request, context) => {
     );
   }
 
-  // Gọi AI chính và AI dự phòng
-  const models = [MODEL, FALLBACK_MODEL];
+  // Mỗi model chỉ được gọi một lần: tránh lặp nhiều request làm người dùng
+  // phải chờ lâu. Model dự phòng vẫn được giữ để bảo toàn khả năng phục hồi.
+  // Timeout bao gồm cả thời gian tải response body.
+  const models = [
+    { name: MODEL, timeoutMs: 18000 },
+    { name: FALLBACK_MODEL, timeoutMs: 12000 }
+  ];
+
   let lastError = "";
+  let shouldTryFallback = true;
 
-  for (const model of models) {
-    console.log("[StudyMate] Đang thử model:", model);
+  for (const [index, modelConfig] of models.entries()) {
+    if (index > 0 && !shouldTryFallback) break;
 
-    for (let attempt = 1; attempt <= 2; attempt++) {
-      try {
-        const upstream = await fetchWithTimeout(
+    const { name: model, timeoutMs } = modelConfig;
+    const modelStartedAt = Date.now();
+
+    console.log(
+      `[StudyMate] Gọi model ${model} (timeout ${timeoutMs} ms)`
+    );
+
+    try {
+      const { response: upstream, data: result, durationMs } =
+        await fetchJsonWithTimeout(
           `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
           {
             method: "POST",
@@ -390,81 +441,78 @@ export default async (request, context) => {
               }
             })
           },
-          6500
+          timeoutMs
         );
 
-        console.log(
-          `[StudyMate] ${model} lần ${attempt}:`,
-          upstream.status
-        );
+      console.log(
+        `[StudyMate] ${model} HTTP ${upstream.status} - ` +
+        `Gemini hoàn tất trong ${durationMs} ms`
+      );
 
-        const result = await upstream.json().catch(() => ({}));
+      if (upstream.ok) {
+        const reply = (result?.candidates?.[0]?.content?.parts || [])
+          .map(part => part.text || "")
+          .join("")
+          .trim();
 
-        if (upstream.ok) {
-          const reply = (result?.candidates?.[0]?.content?.parts || [])
-            .map(part => part.text || "")
-            .join("")
-            .trim();
+        if (reply) {
+          console.log(
+            `[StudyMate] AI trả lời thành công: ${model} ` +
+            `(tổng ${Date.now() - modelStartedAt} ms)`
+          );
 
-          if (reply) {
-            console.log("[StudyMate] AI trả lời thành công:", model);
-
-            return Response.json({
-              reply: normalizeMathReply(reply)
-            });
-          }
-
-          lastError = "AI chưa tạo được nội dung trả lời.";
-          console.error("[StudyMate]", lastError);
-          break;
+          return Response.json({
+            reply: normalizeMathReply(reply)
+          });
         }
 
         lastError =
-          result?.error?.message ||
-          `HTTP ${upstream.status}`;
+          result?.promptFeedback?.blockReason
+            ? `Yêu cầu bị chặn: ${result.promptFeedback.blockReason}`
+            : "AI chưa tạo được nội dung trả lời.";
 
-        console.error(
-          `[StudyMate] Lỗi ${model}:`,
-          JSON.stringify(result.error || result)
-        );
-
-        // Chỉ thử lại khi lỗi có khả năng tạm thời
-        const temporaryError =
-          upstream.status === 429 ||
-          [500, 502, 503, 504].includes(upstream.status);
-
-        if (!temporaryError) {
-          break;
-        }
-
-        if (attempt < 2) {
-          await sleep(700);
-        }
-
-      } catch (error) {
-        lastError = error.name === "AbortError"
-          ? "Yêu cầu AI quá thời gian chờ."
-          : error.message || "Lỗi kết nối AI.";
-
-        console.error(
-          `[StudyMate] Lỗi kết nối ${model}:`,
-          lastError
-        );
-
-        if (attempt < 2) {
-          await sleep(700);
-        }
+        console.error("[StudyMate]", lastError);
+        shouldTryFallback = true;
+        continue;
       }
-    }
 
-    console.log("[StudyMate] Chuyển sang model tiếp theo");
+      lastError =
+        result?.error?.message ||
+        `HTTP ${upstream.status}`;
+
+      console.error(
+        `[StudyMate] Lỗi ${model}:`,
+        JSON.stringify(result?.error || result)
+      );
+
+      // Chỉ chuyển model dự phòng khi lỗi có khả năng tạm thời.
+      shouldTryFallback =
+        upstream.status === 408 ||
+        upstream.status === 429 ||
+        [500, 502, 503, 504].includes(upstream.status);
+    } catch (error) {
+      lastError = error.name === "AbortError"
+        ? `Model ${model} vượt quá thời gian chờ ${timeoutMs} ms.`
+        : error.message || "Lỗi kết nối AI.";
+
+      console.error(`[StudyMate] Lỗi kết nối ${model}:`, lastError);
+
+      // Lỗi mạng hoặc timeout có thể tạm thời, thử model dự phòng một lần.
+      shouldTryFallback = true;
+    }
   }
 
-  console.error("[StudyMate] Tất cả model đều không phản hồi:", lastError);
+  console.error(
+    "[StudyMate] Các model không phản hồi thành công:",
+    lastError
+  );
 
   return Response.json(
     {
-      error: "Gia sư AI đang bận. Hệ thống đã thử máy chủ dự phòng nhưng chưa kết nối được. Bạn thử lại sau một chút nhé."
+      error:
+        "Gia sư AI đang bận hoặc phản hồi quá thời gian cho phép. " +
+        "Hệ thống đã thử model dự phòng nhưng chưa kết nối được. " +
+        "Bạn thử gửi lại sau một chút nhé."
     },
     { status: 503 }
   );
